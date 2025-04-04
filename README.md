@@ -6,6 +6,8 @@ A secure web application for managing and storing account credentials with featu
 
 - 🔐 Secure account credential storage
 - 👤 User authentication and authorization
+- 🔑 Password visibility toggle in all forms
+- 🎲 Strong password generator
 - 📎 File attachment support
 - 🖼️ Automatic favicon fetching for websites
 - 🎨 Beautiful and responsive UI
@@ -16,13 +18,15 @@ A secure web application for managing and storing account credentials with featu
 ## Project Structure
 
 ```plaintext
-Atlas-Account-Vault-01.04.25/
+Atlas-Account-Vault-04.04.25/
 ├── public/
 │   ├── css/
 │   │   └── style.css
 │   ├── js/
-│   │   ├── script.js
-│   │   └── script.backup.js
+│   │   ├── ui.js
+│   │   ├── auth.js
+│   │   ├── account-manager.js
+│   │   └── main.js
 │   └── index.html
 ├── models/
 │   └── Account.js
@@ -32,8 +36,9 @@ Atlas-Account-Vault-01.04.25/
 ├── middleware/
 │   ├── auth.js
 │   └── upload.js
-├── config/
-│   └── database.js
+├── views/
+│   └── index.html
+├── images/
 ├── node_modules/
 ├── .env
 ├── .gitignore
@@ -47,24 +52,24 @@ Atlas-Account-Vault-01.04.25/
 - Backend: Node.js, Express
 - Database: MongoDB with GridFS for file storage
 - Authentication: JWT (JSON Web Tokens)
-- Icons: DuckDuckGo Favicon Service
+- Icons: Font Awesome for UI elements
 
 ## Installation
 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/jayakumar9/Atlas-Account-Vault-01.04.25.git
-cd Atlas-Account-Vault-01.04.25
+git clone https://github.com/jayakumar9/Atlas-Account-Vault-04.04.25-V0.git
+cd Atlas-Account-Vault-04.04.25-V0
 ```
 
-2.Install dependencies:
+2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3.Set up environment variables:
+3. Set up environment variables:
 Create a `.env` file in the root directory with:
 
 ```properties
@@ -73,7 +78,7 @@ JWT_SECRET=your_jwt_secret
 PORT=3000
 ```
 
-4.Start the application:
+4. Start the application:
 
 ```bash
 npm start
@@ -81,16 +86,30 @@ npm start
 
 ## Usage
 
-1. Register a new account or login with existing credentials
-2. Add new accounts with website, username, and password
-3. Optionally attach files to account entries
-4. View, edit, or delete stored accounts
-5. Monitor system status through the status indicator
+1. Register a new account:
+   - Fill in your username and email
+   - Create a strong password or use the "Generate Strong Password" button
+   - Toggle password visibility using the eye icon
+   
+2. Login to your account:
+   - Enter your email and password
+   - Use the eye icon to toggle password visibility
+
+3. Manage your accounts:
+   - Add new accounts with website, username, and password
+   - Generate strong passwords for new accounts
+   - Toggle password visibility when viewing or editing
+   - Optionally attach files to account entries
+   - View, edit, or delete stored accounts
+
+4. Monitor system status through the status indicator
 
 ## Security Features
 
 - Password encryption
 - JWT-based authentication
+- Secure password visibility toggle
+- Strong password generation
 - Secure file storage with GridFS
 - Session management
 - Input validation and sanitization
@@ -115,15 +134,11 @@ npm run dev
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Acknowledgments
-
-- DuckDuckGo for favicon service
-- MongoDB Atlas for database hosting
-- Express.js community for the excellent framework
-
 ## Latest Updates
 
-- Added favicon support for websites
+- Added password visibility toggle in all forms
+- Implemented strong password generator
+- Enhanced login and registration forms
 - Improved error handling
 - Enhanced UI/UX with responsive design
 - Added file attachment capabilities
@@ -133,4 +148,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Jayakumar - [@jayakumar9](https://github.com/jayakumar9)
 
-Project Link: [https://github.com/jayakumar9/Atlas-Account-Vault-01.04.25](https://github.com/jayakumar9/Atlas-Account-Vault-01.04.25)
+Project Link: [https://github.com/jayakumar9/Atlas-Account-Vault-04.04.25-V0](https://github.com/jayakumar9/Atlas-Account-Vault-04.04.25-V0)

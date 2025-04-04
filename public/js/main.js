@@ -2,12 +2,30 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing application...');
 
+    // Initialize password toggle icons
+    const initializePasswordToggles = () => {
+        document.querySelectorAll('.toggle-password').forEach(icon => {
+            icon.removeEventListener('click', handlePasswordToggle);
+            icon.addEventListener('click', handlePasswordToggle);
+        });
+    };
+
+    const handlePasswordToggle = function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        UI.togglePasswordVisibility(this);
+    };
+
+    // Initial setup of password toggles
+    initializePasswordToggles();
+
     // Function to show login form
     window.showLoginForm = () => {
         document.getElementById('login-form').classList.remove('hidden');
         document.getElementById('register-form').classList.add('hidden');
         document.querySelector('.auth-toggle button:first-child').classList.add('active');
         document.querySelector('.auth-toggle button:last-child').classList.remove('active');
+        initializePasswordToggles(); // Reinitialize toggles after form switch
     };
 
     // Function to show register form
@@ -16,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('register-form').classList.remove('hidden');
         document.querySelector('.auth-toggle button:first-child').classList.remove('active');
         document.querySelector('.auth-toggle button:last-child').classList.add('active');
+        initializePasswordToggles(); // Reinitialize toggles after form switch
     };
 
     // Add form submit event listeners

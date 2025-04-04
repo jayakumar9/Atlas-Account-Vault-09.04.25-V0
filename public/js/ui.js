@@ -92,37 +92,35 @@ window.UI = {
         if (!element) return;
         
         try {
-            // Check if this is a form input field
-            if (element.previousElementSibling && element.previousElementSibling.type === 'password') {
-                const input = element.previousElementSibling;
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    element.classList.remove('fa-eye');
-                    element.classList.add('fa-eye-slash');
-                } else {
-                    input.type = 'password';
-                    element.classList.remove('fa-eye-slash');
-                    element.classList.add('fa-eye');
-                }
+            // Find the associated password input
+            const input = element.previousElementSibling;
+            if (!input || !input.type) {
+                console.error('No password input found');
+                return;
             }
-            // Check if this is a displayed password in an account card
-            else if (element.previousElementSibling && element.previousElementSibling.classList.contains('password-value')) {
-                const passwordSpan = element.previousElementSibling;
-                const password = passwordSpan.getAttribute('data-password');
-                if (passwordSpan.textContent === '••••••••') {
-                    passwordSpan.textContent = password;
-                    element.textContent = 'Hide';
-                } else {
-                    passwordSpan.textContent = '••••••••';
-                    element.textContent = 'Show';
-                }
+
+            // Toggle password visibility
+            if (input.type === 'password') {
+                input.type = 'text';
+                element.classList.remove('fa-eye');
+                element.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                element.classList.remove('fa-eye-slash');
+                element.classList.add('fa-eye');
             }
+
+            // Prevent form submission
+            element.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
         } catch (error) {
             console.error('Error toggling password visibility:', error);
         }
     },
 
-    generatePassword() {
+    generatePassword(targetId = null) {
         try {
             const length = 16;
             const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+';
@@ -144,7 +142,7 @@ window.UI = {
             password = password.split('').sort(() => Math.random() - 0.5).join('');
             
             // Set the password in the input field
-            const passwordInput = document.getElementById('password');
+            const passwordInput = document.getElementById(targetId || 'password');
             if (passwordInput) {
                 passwordInput.value = password;
                 passwordInput.type = 'text';

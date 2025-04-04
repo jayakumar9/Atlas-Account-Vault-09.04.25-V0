@@ -24,7 +24,7 @@
                 </div>
                 <div class="form-group password-group">
                     <input type="password" id="login-password" placeholder="Password" required>
-                    <i class="fas fa-eye toggle-password" onclick="UI.togglePasswordVisibility(this)"></i>
+                    <i class="fas fa-eye toggle-password"></i>
                 </div>
                 <button type="submit">Login</button>
             </form>
@@ -40,9 +40,9 @@
                 </div>
                 <div class="form-group password-group">
                     <input type="password" id="register-password" placeholder="Password" required>
-                    <i class="fas fa-eye toggle-password" onclick="UI.togglePasswordVisibility(this)"></i>
+                    <i class="fas fa-eye toggle-password"></i>
                 </div>
-                <button type="button" onclick="UI.generatePassword()" class="generate-btn">Generate Strong Password</button>
+                <button type="button" onclick="UI.generatePassword('register-password')" class="generate-btn">Generate Strong Password</button>
                 <button type="submit">Register</button>
             </form>
         </div>
@@ -80,7 +80,7 @@
                     </div>
                     <div class="form-group password-group">
                         <input type="password" id="password" placeholder="Password" required>
-                        <i class="fas fa-eye toggle-password" onclick="UI.togglePasswordVisibility(this)"></i>
+                        <i class="fas fa-eye toggle-password"></i>
                     </div>
                     <button type="button" onclick="UI.generatePassword()" class="generate-btn">Generate Strong Password</button>
                     <div class="form-group">
