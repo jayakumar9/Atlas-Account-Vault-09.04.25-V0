@@ -17,34 +17,79 @@ A secure web application for managing and storing account credentials with featu
 
 ## Project Structure
 
-```plaintext
-Atlas-Account-Vault-04.04.25/
-├── public/
-│   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   ├── ui.js
-│   │   ├── auth.js
-│   │   ├── account-manager.js
-│   │   └── main.js
-│   └── index.html
-├── models/
-│   └── Account.js
-├── routes/
-│   ├── accounts.js
-│   └── auth.js
-├── middleware/
-│   ├── auth.js
-│   └── upload.js
-├── views/
-│   └── index.html
-├── images/
-├── node_modules/
-├── .env
-├── .gitignore
-├── package.json
-└── README.md
-```
+### CSS Files (`public/css/`)
+
+1. `style.css`
+   - Core layout and common styles
+   - Basic reset and body styles
+   - Container layouts
+   - System status styles
+   - Basic form styles
+   - Utility classes
+   - Loading spinner
+   - Responsive design
+
+2. `header.css`
+   - Header container styles
+   - Title styling
+   - User info section
+   - Responsive header adjustments
+
+3. `buttons.css`
+   - Global button styles
+   - User info buttons
+   - Auth toggle buttons
+   - Form action buttons
+   - Generate password button
+   - Edit/Delete buttons
+
+4. `password-fields.css`
+   - Password input styling
+   - Show/Hide password toggle
+   - Password field layout
+   - Password value display
+
+5. `add-edit-account-form.css`
+   - Account form container
+   - Form fields styling
+   - Form actions layout
+   - Input and textarea styles
+   - File upload styling
+
+6. `account-list.css`
+   - Account cards layout
+   - Account logo styling
+   - Account details display
+   - Action buttons (Edit/Delete)
+   - Serial number display
+
+7. `notifications.css`
+   - Notification container
+   - Success/Error states
+   - Animation effects
+   - Positioning and visibility
+
+### JavaScript Files (`public/js/`)
+
+1. `ui.js`
+   - User interface-related functions
+2. `auth.js`
+   - Authentication-related functions
+3. `account-manager.js`
+   - Account management-related functions
+4. `main.js`
+   - Main application script
+
+### Server Files
+
+1. `accounts.js`
+   - Account-related routes
+2. `auth.js`
+   - Authentication-related routes
+3. `middleware/auth.js`
+   - Middleware for authentication
+4. `middleware/upload.js`
+   - Middleware for file uploads
 
 ## Tech Stack
 
@@ -63,13 +108,13 @@ git clone https://github.com/jayakumar9/Atlas-Account-Vault-04.04.25-V0.git
 cd Atlas-Account-Vault-04.04.25-V0
 ```
 
-2.Install dependencies:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3.Set up environment variables:
+1. Set up environment variables:
 Create a `.env` file in the root directory with:
 
 ```properties
@@ -78,7 +123,7 @@ JWT_SECRET=your_jwt_secret
 PORT=3000
 ```
 
-4.Start the application:
+1. Start the application:
 
 ```bash
 npm start

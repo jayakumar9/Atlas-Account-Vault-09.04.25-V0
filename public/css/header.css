@@ -1,0 +1,143 @@
+/* Header Styles */
+header {
+    position: relative;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    background-color: rgba(32, 33, 36, 0.95);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    min-width: min-content;
+}
+
+/* Header sections */
+.header-left, .header-center, .header-right {
+    display: flex;
+    align-items: center;
+}
+
+.header-left {
+    flex: 0 0 auto;  /* Don't grow, don't shrink, auto basis */
+    margin-right: 20px;
+}
+
+.header-center {
+    flex: 1;
+    justify-content: center;
+    display: flex;
+}
+
+.header-right {
+    flex: 0 0 auto;  /* Don't grow, don't shrink, auto basis */
+    margin-left: 20px;
+}
+
+/* Database info styles */
+.db-info {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    padding: 8px 16px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: fit-content;
+}
+
+.db-info span {
+    color: #4CAF50;
+    font-family: monospace;
+    display: inline-block;
+}
+
+/* Bottom border line */
+header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: -1px;
+    right: -1px;
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.7);
+    z-index: 10;
+}
+
+/* Header title */
+header h1 {
+    color: #e1e1e1;
+    font-size: 24px;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* User info section */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.user-info span {
+    color: #e1e1e1;
+    font-weight: 500;
+    font-size: 16px;
+}
+
+.user-info span a {
+    color: #2196F3;  /* Blue color for username link */
+    text-decoration: none;
+}
+
+.user-info button {
+    background-color: #dc3545;  /* Red color for logout button */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.user-info button:hover {
+    background-color: #c82333;  /* Darker red on hover */
+}
+
+/* Welcome text */
+.welcome-text {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e1e1e1;
+}
+
+/* Username link */
+.welcome-text a {
+    color: #2196F3;
+    text-decoration: none;
+}
+
+/* Responsive Header */
+@media (max-width: 1024px) {
+    header {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-left, .header-center, .header-right {
+        flex: 1 1 100%;
+        justify-content: center;
+        margin: 0;
+    }
+
+    .db-info {
+        width: 100%;
+        justify-content: center;
+    }
+} 

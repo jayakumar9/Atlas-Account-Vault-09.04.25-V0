@@ -56,35 +56,118 @@ window.UI = {
         }
 
         try {
-            const name = account.name || '??';
-            const hash = name.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
-            const hue = hash % 360;
-            const color = `hsl(${hue}, 65%, 45%)`;
-            const initial = name.substring(0, 2).toUpperCase();
-            
-            return `data:image/svg+xml,${encodeURIComponent(`
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-                    <rect width="40" height="40" fill="${color}" rx="4"/>
-                    <text x="50%" y="50%" font-family="Arial" font-size="20" 
-                        fill="white" text-anchor="middle" dy=".3em"
-                        font-weight="bold">${initial}</text>
-                </svg>
-            `)}`;
+            // If website URL exists, try to get its favicon
+            if (account.website) {
+                let websiteUrl = account.website.toLowerCase();
+                
+                // Add https:// if no protocol is specified
+                if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
+                    websiteUrl = 'https://' + websiteUrl;
+                }
+
+                try {
+                    const url = new URL(websiteUrl);
+                    const hostname = url.hostname.replace(/^www\./, '');
+                    
+                    // Use a default logo initially
+                    const defaultLogo = this.createDefaultLogoFromName(account.name);
+                    
+                    // Create an image element to test logo URLs
+                    const img = new Image();
+                    let currentServiceIndex = 0;
+                    
+                    const services = [
+                        // 1. Clearbit Logo API (high quality, includes brand logos)
+                        `https://logo.clearbit.com/${hostname}`,
+                        // 2. Google S2 Favicon Service (reliable, basic favicons)
+                        `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
+                        // 3. DuckDuckGo Favicon Service (good fallback)
+                        `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+                        // 4. Direct favicon from website
+                        `${url.origin}/favicon.ico`
+                    ];
+
+                    // Cache successful logo URLs
+                    if (!window.UI.logoCache) {
+                        window.UI.logoCache = new Map();
+                    }
+
+                    // Check cache first
+                    if (window.UI.logoCache.has(hostname)) {
+                        return window.UI.logoCache.get(hostname);
+                    }
+
+                    // Try loading the logo from each service
+                    const tryLoadLogo = () => {
+                        if (currentServiceIndex >= services.length) {
+                            return defaultLogo;
+                        }
+
+                        return new Promise((resolve) => {
+                            const logoUrl = services[currentServiceIndex];
+                            img.onload = () => {
+                                // Cache successful result
+                                window.UI.logoCache.set(hostname, logoUrl);
+                                resolve(logoUrl);
+                            };
+                            img.onerror = () => {
+                                currentServiceIndex++;
+                                if (currentServiceIndex < services.length) {
+                                    img.src = services[currentServiceIndex];
+                                } else {
+                                    // Cache default logo to prevent future attempts
+                                    window.UI.logoCache.set(hostname, defaultLogo);
+                                    resolve(defaultLogo);
+                                }
+                            };
+                            img.src = logoUrl;
+                        });
+                    };
+
+                    // Return default logo immediately while trying to load the actual logo
+                    tryLoadLogo().then(logoUrl => {
+                        // Update all instances of this website's logo
+                        document.querySelectorAll('.account-logo').forEach(logoImg => {
+                            if (logoImg.dataset.website === hostname) {
+                                logoImg.src = logoUrl;
+                            }
+                        });
+                    });
+
+                    return defaultLogo;
+                } catch (urlError) {
+                    console.error('Invalid URL:', urlError);
+                    return this.createDefaultLogoFromName(account.name);
+                }
+            }
+
+            return this.createDefaultLogoFromName(account.name);
         } catch (error) {
             console.error('Error creating account logo:', error);
             return this.createDefaultLogo();
         }
     },
 
-    createDefaultLogo() {
+    createDefaultLogoFromName(name) {
+        // Generate logo from name
+        const displayName = name || '??';
+        const hash = displayName.split('').reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+        const hue = hash % 360;
+        const color = `hsl(${hue}, 65%, 45%)`;
+        const initial = displayName.substring(0, 2).toUpperCase();
+        
         return `data:image/svg+xml,${encodeURIComponent(`
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
-                <rect width="40" height="40" fill="#808080" rx="4"/>
+                <rect width="40" height="40" fill="${color}" rx="4"/>
                 <text x="50%" y="50%" font-family="Arial" font-size="20" 
                     fill="white" text-anchor="middle" dy=".3em"
-                    font-weight="bold">??</text>
+                    font-weight="bold">${initial}</text>
             </svg>
         `)}`;
+    },
+
+    createDefaultLogo() {
+        return this.createDefaultLogoFromName('??');
     },
 
     togglePasswordVisibility(element) {
@@ -163,4 +246,23 @@ window.UI = {
             UI.showNotification('Error generating password', 'error');
         }
     }
-}; 
+};
+
+// Update database info in header
+async function updateDatabaseInfo() {
+    try {
+        const response = await fetch('/api/db-info');
+        const data = await response.json();
+        
+        document.getElementById('db-name').textContent = data.dbName;
+        document.getElementById('collection-name').textContent = data.collectionName;
+    } catch (error) {
+        console.error('Error fetching database info:', error);
+    }
+}
+
+// Call this when initializing the UI
+document.addEventListener('DOMContentLoaded', () => {
+    // ... existing initialization code ...
+    updateDatabaseInfo();
+}); 

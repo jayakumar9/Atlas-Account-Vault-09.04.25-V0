@@ -85,6 +85,18 @@ window.AccountManager = {
                     const serialNumber = account.serialNumber || (index + 1);
                     const accountLogo = window.UI.createAccountLogo(account);
                     
+                    // Get hostname from website URL
+                    let hostname = '';
+                    if (account.website) {
+                        try {
+                            const websiteUrl = account.website.toLowerCase();
+                            const url = new URL(websiteUrl.startsWith('http') ? websiteUrl : 'https://' + websiteUrl);
+                            hostname = url.hostname.replace(/^www\./, '');
+                        } catch (e) {
+                            console.error('Error parsing website URL:', e);
+                        }
+                    }
+                    
                     accountCard.innerHTML = `
                         <div class="serial-number">#${serialNumber}</div>
                         <div class="account-content">
@@ -93,7 +105,8 @@ window.AccountManager = {
                                     src="${accountLogo}"
                                     alt="${account.name || 'Account'}"
                                     class="account-logo"
-                                    onerror="this.src='${accountLogo}';"
+                                    data-website="${hostname}"
+                                    onerror="this.src='${UI.createDefaultLogoFromName(account.name)}';"
                                 />
                             </div>
                             <div class="account-info">

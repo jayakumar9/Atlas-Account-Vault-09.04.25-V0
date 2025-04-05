@@ -118,6 +118,23 @@ app.get('/api/status', (req, res) => {
     }
 });
 
+// Database info endpoint
+app.get('/api/db-info', (req, res) => {
+    try {
+        const dbInfo = {
+            dbName: mongoose.connection.name || 'Not connected',
+            collectionName: 'accounts'  // This is the collection we're using for storing accounts
+        };
+        res.json(dbInfo);
+    } catch (error) {
+        console.error('Error getting database info:', error);
+        res.status(500).json({
+            dbName: 'Error',
+            collectionName: 'Error'
+        });
+    }
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/accounts', require('./routes/accounts'));
 

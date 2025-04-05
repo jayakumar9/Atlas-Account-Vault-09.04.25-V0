@@ -5,8 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Atlas Account Vault</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/header.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/password-fields.css">
+    <link rel="stylesheet" href="css/add-edit-account-form.css">
+    <link rel="stylesheet" href="css/account-list.css">
     <link rel="stylesheet" href="css/notifications.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
@@ -51,10 +56,21 @@
         <!-- Main Content -->
         <div id="main-content" class="hidden">
             <header>
-                <h1>Atlas Account Vault</h1>
-                <div class="user-info">
-                    <span id="username-display"></span>
-                    <button onclick="Auth.logout()">Logout</button>
+                <div class="header-left">
+                    <h1>Atlas Account Vault</h1>
+                </div>
+                <div class="header-center">
+                    <div class="db-info">
+                        DB: <span id="db-name"></span> | Collection: <span id="collection-name"></span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <span class="welcome-text">
+                            Welcome, <a id="username-display" href="#"></a>
+                        </span>
+                        <button onclick="Auth.logout()">Logout</button>
+                    </div>
                 </div>
             </header>
 

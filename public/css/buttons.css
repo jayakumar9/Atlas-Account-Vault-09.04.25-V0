@@ -1,0 +1,63 @@
+/* Global Button Styles */
+button {
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* User Info Button */
+.user-info button {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 16px;
+}
+
+/* Auth Toggle Buttons */
+.auth-toggle button {
+    flex: 1;
+    padding: 10px;
+    background: #2d3239;
+    color: #8b8b8b;
+}
+
+.auth-toggle button.active {
+    background: #3b82f6;
+    color: white;
+}
+
+/* Form Buttons */
+.form-actions button {
+    padding: 10px;
+    font-weight: 500;
+}
+
+.form-actions button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.form-actions button[type="button"] {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Generate Password Button */
+.generate-btn {
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.generate-btn:hover {
+    background-color: #1976D2;
+} 
