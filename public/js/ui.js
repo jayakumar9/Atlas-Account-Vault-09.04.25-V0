@@ -4,7 +4,7 @@ window.UI = {
         document.getElementById('auth-container').classList.add('hidden');
         document.getElementById('main-content').classList.remove('hidden');
         if (Auth.currentUser) {
-            document.getElementById('username-display').textContent = Auth.currentUser.username;
+            document.getElementById('username-display').textContent = `Welcome, ${Auth.currentUser.username}`;
         }
     },
 

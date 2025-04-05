@@ -52,10 +52,6 @@
         <div id="main-content" class="hidden">
             <header>
                 <h1>Atlas Account Vault</h1>
-                <div class="system-status">
-                    <span class="status-text">System Status: Healthy</span>
-                    <span class="status-info">Database: connected | GridFS: initialized</span>
-                </div>
                 <div class="user-info">
                     <span id="username-display"></span>
                     <button onclick="Auth.logout()">Logout</button>
@@ -103,6 +99,12 @@
                 <div id="accounts-list"></div>
             </div>
         </div>
+    </div>
+
+    <!-- System Status (Fixed Position) -->
+    <div class="system-status">
+        <span class="status-text">System Status: Healthy</span>
+        <span class="status-info">Database: connected | GridFS: initialized</span>
     </div>
 
     <!-- Load scripts in the correct order with defer -->

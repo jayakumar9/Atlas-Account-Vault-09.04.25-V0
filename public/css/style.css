@@ -145,10 +145,23 @@ header {
     gap: 15px;
 }
 
+header h1 {
+    color: #000000;
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
 .user-info {
     display: flex;
     align-items: center;
     gap: 15px;
+}
+
+.user-info span {
+    color: #000000;
+    font-weight: 500;
+    font-size: 16px;
 }
 
 /* Account Form Styles */
@@ -340,21 +353,31 @@ header {
 
 /* System Status Styles */
 .system-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
     background-color: #2c6e49;
     color: #e1e1e1;
-    padding: 8px 16px;
-    border-radius: 4px;
-    margin-bottom: 20px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .status-text {
     font-weight: bold;
     font-size: 16px;
+    white-space: nowrap;
 }
 
 .status-info {
     font-size: 14px;
     opacity: 0.9;
+    white-space: nowrap;
 }
 
 /* Responsive Design */
