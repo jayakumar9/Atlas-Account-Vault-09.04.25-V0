@@ -102,9 +102,9 @@ window.AccountManager = {
                                 <p><strong>Username:</strong> ${account.username || 'N/A'}</p>
                                 <p><strong>Email:</strong> ${account.email || 'N/A'}</p>
                                 <div class="password-field">
-                                    <strong>Password:</strong>
-                                    <span class="password-value" data-password="${account.password}">••••••••</span>
-                                    <button class="show-password" onclick="UI.togglePasswordVisibility(this)">Show</button>
+                                    <strong>Password:</strong> 
+                                    <span class="password-value" data-password="${account.password || ''}">••••••••</span>
+                                    <button type="button" class="show-password" onclick="UI.togglePasswordVisibility(this)">Show</button>
                                 </div>
                                 ${account.note ? `<p><strong>Note:</strong> ${account.note}</p>` : ''}
                                 ${account.attachedFile ? `
@@ -189,6 +189,7 @@ window.AccountManager = {
             const savedAccount = await response.json();
 
             if (fileInput.files[0]) {
+                UI.showNotification('Uploading file...', 'success');
                 const formData = new FormData();
                 formData.append('attachedFile', fileInput.files[0]);
 
@@ -201,17 +202,19 @@ window.AccountManager = {
                 });
 
                 if (!uploadResponse.ok) {
-                    const uploadData = await uploadResponse.json();
-                    throw new Error('Account saved but file upload failed: ' + uploadData.message);
+                    throw new Error('File upload failed');
                 }
             }
 
             UI.resetForm();
             await this.loadAccounts();
-            UI.showNotification(accountId ? 'Account updated successfully!' : 'Account created successfully!');
+            UI.showNotification(
+                accountId ? '✅ Account updated successfully!' : '✅ Account created successfully!',
+                'success'
+            );
         } catch (error) {
             console.error('Error saving account:', error);
-            UI.showNotification(error.message || 'Error saving account', 'error');
+            UI.showNotification('❌ ' + (error.message || 'Error saving account'), 'error');
         }
     },
 
@@ -260,15 +263,15 @@ window.AccountManager = {
             });
 
             if (response.ok) {
-                UI.showNotification('Account deleted successfully');
-                this.loadAccounts();
+                await this.loadAccounts();
+                UI.showNotification('✅ Account deleted successfully!', 'success');
             } else {
                 const data = await response.json();
                 throw new Error(data.message || 'Failed to delete account');
             }
         } catch (error) {
             console.error('Error deleting account:', error);
-            UI.showNotification(error.message || 'Error deleting account', 'error');
+            UI.showNotification('❌ ' + (error.message || 'Error deleting account'), 'error');
         }
     },
 

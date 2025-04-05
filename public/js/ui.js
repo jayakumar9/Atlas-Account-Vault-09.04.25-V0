@@ -14,20 +14,19 @@ window.UI = {
     },
 
     showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.innerHTML = `
-            <div class="notification-content">
-                <span>${message}</span>
-                <button onclick="this.parentElement.parentElement.remove()">×</button>
-            </div>
-        `;
-        document.body.appendChild(notification);
+        console.log('[UI] Showing notification:', { message, type });
         
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
+        if (!window.NotificationSystem) {
+            console.error('[UI] NotificationSystem not loaded!');
+            return;
+        }
+        
+        console.log('[UI] NotificationSystem available, calling method:', type);
+        if (type === 'success') {
+            NotificationSystem.success(message);
+        } else {
+            NotificationSystem.error(message);
+        }
     },
 
     fillAccountForm(account) {
@@ -92,14 +91,29 @@ window.UI = {
         if (!element) return;
         
         try {
-            // Find the associated password input
+            // Check if this is a show/hide button in an account card
+            if (element.classList.contains('show-password')) {
+                const passwordSpan = element.previousElementSibling;
+                if (passwordSpan && passwordSpan.classList.contains('password-value')) {
+                    const password = passwordSpan.getAttribute('data-password');
+                    if (passwordSpan.textContent === '••••••••') {
+                        passwordSpan.textContent = password;
+                        element.textContent = 'Hide';
+                    } else {
+                        passwordSpan.textContent = '••••••••';
+                        element.textContent = 'Show';
+                    }
+                    return;
+                }
+            }
+
+            // Handle password input fields (for forms)
             const input = element.previousElementSibling;
             if (!input || !input.type) {
                 console.error('No password input found');
                 return;
             }
 
-            // Toggle password visibility
             if (input.type === 'password') {
                 input.type = 'text';
                 element.classList.remove('fa-eye');
@@ -109,12 +123,6 @@ window.UI = {
                 element.classList.remove('fa-eye-slash');
                 element.classList.add('fa-eye');
             }
-
-            // Prevent form submission
-            element.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            };
         } catch (error) {
             console.error('Error toggling password visibility:', error);
         }

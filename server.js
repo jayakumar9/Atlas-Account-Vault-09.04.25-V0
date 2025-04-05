@@ -47,8 +47,14 @@ app.use((err, req, res, next) => {
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000, // Increased timeout
+    serverSelectionTimeoutMS: 30000,
     socketTimeoutMS: 45000,
+    connectTimeoutMS: 30000,
+    retryWrites: true,
+    w: 'majority',
+    maxPoolSize: 10,
+    minPoolSize: 2,
+    family: 4
 }).then(() => {
     console.log('Connected to MongoDB Atlas');
     console.log('Database Name:', mongoose.connection.name);
@@ -62,6 +68,8 @@ mongoose.connect(process.env.MONGODB_URI, {
         console.error('1. Your MongoDB Atlas cluster is running');
         console.error('2. Your IP address is whitelisted in MongoDB Atlas');
         console.error('3. Your credentials are correct');
+        console.error('4. Your network connection is stable');
+        console.error('5. VPN or firewall settings are not blocking the connection');
     }
 });
 
@@ -128,17 +136,44 @@ app.get('*', (req, res) => {
 // Monitor database connection
 mongoose.connection.on('error', (err) => {
     console.error('MongoDB connection error:', err);
+    // Attempt to reconnect with exponential backoff
+    setTimeout(() => {
+        mongoose.connect(process.env.MONGODB_URI).catch(err => 
+            console.error('Immediate reconnection failed:', err)
+        );
+    }, 5000);
 });
 
 mongoose.connection.on('disconnected', () => {
     console.log('MongoDB connection disconnected');
-    // Attempt to reconnect
-    setTimeout(() => {
-        mongoose.connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-        }).catch(err => console.error('Reconnection failed:', err));
-    }, 5000);
+    // Attempt to reconnect with exponential backoff
+    let retryAttempts = 0;
+    const maxRetries = 5;
+    const backoff = () => Math.min(1000 * Math.pow(2, retryAttempts), 60000);
+
+    const attemptReconnection = () => {
+        if (retryAttempts < maxRetries) {
+            retryAttempts++;
+            console.log(`Attempting to reconnect... (Attempt ${retryAttempts}/${maxRetries})`);
+            
+            mongoose.connect(process.env.MONGODB_URI, {
+                serverSelectionTimeoutMS: 30000,
+                socketTimeoutMS: 45000,
+                connectTimeoutMS: 30000,
+                family: 4
+            }).then(() => {
+                console.log('Successfully reconnected to MongoDB');
+                retryAttempts = 0;
+            }).catch(err => {
+                console.error(`Reconnection attempt ${retryAttempts} failed:`, err);
+                setTimeout(attemptReconnection, backoff());
+            });
+        } else {
+            console.error('Max reconnection attempts reached. Please check your database connection.');
+        }
+    };
+
+    attemptReconnection();
 });
 
 process.on('SIGINT', async () => {

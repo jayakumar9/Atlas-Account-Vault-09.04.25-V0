@@ -194,6 +194,8 @@ header {
     display: flex;
     flex-direction: column;
     position: relative;
+    padding: 15px;
+    margin-top: 10px;
 }
 
 .serial-number {
@@ -202,93 +204,49 @@ header {
     left: 10px;
     color: #8b8b8b;
     font-size: 0.9em;
-}
-
-.account-content {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.account-logo-container {
-    width: 32px;
-    height: 32px;
-    margin-bottom: 10px;
+    z-index: 1;
 }
 
 .account-logo {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+    width: 40px;
+    height: 40px;
     border-radius: 4px;
+    margin: 15px 0 10px 40px;
+    object-fit: contain;
 }
 
-.account-info {
-    flex-grow: 1;
-}
-
-.account-info h3 {
-    color: #e1e1e1;
-    font-size: 1.2em;
-    margin-bottom: 15px;
-}
-
-.account-info p {
-    color: #8b8b8b;
-    margin: 8px 0;
-    font-size: 0.95em;
-}
-
-.account-info p strong {
-    color: #a1a1a1;
-    width: 100px;
-    display: inline-block;
-}
-
-.password-field {
-    position: relative;
+.account-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-}
-
-.password-value {
-    flex-grow: 1;
-    font-family: monospace;
-}
-
-.show-password {
-    background: #2d3239;
-    color: #8b8b8b;
-    border: none;
-    padding: 4px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-}
-
-.show-password:hover {
-    background: #363c44;
-}
-
-.file-info {
-    margin-top: 15px;
+    margin-bottom: 15px;
     padding-top: 15px;
-    border-top: 1px solid #2d3239;
 }
 
-.file-link {
-    color: #3b82f6;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.95em;
+.account-name {
+    margin-left: 15px;
+    font-size: 1.2em;
+    color: #e1e1e1;
+    font-weight: 500;
 }
 
-.file-link:hover {
-    text-decoration: underline;
+.account-content {
+    flex: 1;
+    padding: 0 15px;
+}
+
+.account-field {
+    margin-bottom: 10px;
+}
+
+.field-label {
+    color: #8b8b8b;
+    font-size: 0.9em;
+    margin-bottom: 2px;
+}
+
+.field-value {
+    color: #e1e1e1;
+    word-break: break-all;
 }
 
 .account-actions {
@@ -297,34 +255,26 @@ header {
     margin-top: 15px;
 }
 
-.edit-btn, .delete-btn {
-    padding: 6px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: background-color 0.2s;
-}
-
-.edit-btn {
-    background-color: #3b82f6;
-    color: white;
+.account-actions button {
+    flex: 1;
+    padding: 8px;
+    font-size: 14px;
 }
 
 .delete-btn {
-    background-color: #dc2626;
-    color: white;
-}
-
-.edit-btn:hover {
-    background-color: #2563eb;
+    background: #dc3545;
 }
 
 .delete-btn:hover {
-    background-color: #b91c1c;
+    background: #c82333;
+}
+
+.edit-btn {
+    background: #007bff;
+}
+
+.edit-btn:hover {
+    background: #0056b3;
 }
 
 /* Text styles */
@@ -461,4 +411,41 @@ header {
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* Password Field Styles */
+.password-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+.password-field strong {
+    min-width: 80px;
+}
+
+.password-value {
+    flex: 1;
+    font-family: monospace;
+    background: #2d3239;
+    padding: 4px 8px;
+    border-radius: 4px;
+    word-break: break-all;
+}
+
+.show-password {
+    background: #2d3239;
+    color: #8b8b8b;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.show-password:hover {
+    background: #363c44;
+    color: #e1e1e1;
 } 

@@ -29,12 +29,45 @@ const Auth = {
                 // Show main content and load accounts
                 UI.showMainContent();
                 AccountManager.loadAccounts();
+                UI.showNotification('✅ Successfully logged in!', 'success');
             } else {
-                UI.showNotification(data.message || 'Login failed', 'error');
+                UI.showNotification('❌ ' + (data.message || 'Login failed'), 'error');
             }
         } catch (error) {
             console.error('Login error:', error);
-            UI.showNotification('Login failed. Please try again.', 'error');
+            UI.showNotification('❌ Login failed. Please try again.', 'error');
+        }
+    },
+
+    async handleRegister(e) {
+        e.preventDefault();
+        console.log('Register form submitted');
+        
+        const username = document.getElementById('register-username').value;
+        const email = document.getElementById('register-email').value;
+        const password = document.getElementById('register-password').value;
+
+        try {
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.json();
+            console.log('Register response:', data);
+
+            if (response.ok) {
+                UI.showNotification('✅ Registration successful! Please log in.', 'success');
+                showLoginForm(); // Switch to login form
+            } else {
+                UI.showNotification('❌ ' + (data.message || 'Registration failed'), 'error');
+            }
+        } catch (error) {
+            console.error('Register error:', error);
+            UI.showNotification('❌ Registration failed. Please try again.', 'error');
         }
     },
 
@@ -69,6 +102,7 @@ const Auth = {
         localStorage.removeItem('token');
         this.currentUser = null;
         UI.showAuthForms();
+        UI.showNotification('👋 Successfully logged out!', 'success');
     },
 
     getToken() {
@@ -79,6 +113,10 @@ const Auth = {
         return !!this.getToken();
     }
 };
+
+// Add event listeners for forms
+document.getElementById('login-form').addEventListener('submit', (e) => Auth.handleLogin(e));
+document.getElementById('register-form').addEventListener('submit', (e) => Auth.handleRegister(e));
 
 // Export the Auth module
 window.Auth = Auth; 

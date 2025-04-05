@@ -63,13 +63,13 @@ git clone https://github.com/jayakumar9/Atlas-Account-Vault-04.04.25-V0.git
 cd Atlas-Account-Vault-04.04.25-V0
 ```
 
-2. Install dependencies:
+2.Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+3.Set up environment variables:
 Create a `.env` file in the root directory with:
 
 ```properties
@@ -78,7 +78,7 @@ JWT_SECRET=your_jwt_secret
 PORT=3000
 ```
 
-4. Start the application:
+4.Start the application:
 
 ```bash
 npm start
@@ -90,7 +90,7 @@ npm start
    - Fill in your username and email
    - Create a strong password or use the "Generate Strong Password" button
    - Toggle password visibility using the eye icon
-   
+
 2. Login to your account:
    - Enter your email and password
    - Use the eye icon to toggle password visibility
