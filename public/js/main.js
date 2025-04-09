@@ -1,3 +1,36 @@
+// Main application initialization
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize base URL for API calls
+        window.API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? ''
+            : 'https://atlas-account-vault.herokuapp.com';
+
+        // Initialize UI components
+        await UI.initialize();
+        
+        // Check authentication status
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                await Auth.verifyToken(token);
+                UI.showMainContent();
+            } catch (error) {
+                console.error('Token verification failed:', error);
+                UI.showAuthForms();
+            }
+        } else {
+            UI.showAuthForms();
+        }
+
+        // Remove loading message
+        document.getElementById('loading').style.display = 'none';
+    } catch (error) {
+        console.error('Initialization error:', error);
+        UI.showNotification('Error initializing application. Please try again.', 'error');
+    }
+});
+
 // Initialize the application when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing application...');
@@ -65,14 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const generatePasswordButton = document.querySelector('button[onclick="UI.generatePassword()"]');
     if (generatePasswordButton) {
         generatePasswordButton.onclick = () => UI.generatePassword();
-    }
-
-    // Initialize the UI state
-    if (Auth.isAuthenticated()) {
-        UI.showMainContent();
-        AccountManager.loadAccounts();
-    } else {
-        UI.showAuthForms();
     }
 
     // Check authentication status on page load
