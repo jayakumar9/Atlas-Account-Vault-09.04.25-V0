@@ -15,7 +15,12 @@ const app = express();
 
 // Enable CORS for all routes with credentials
 app.use((req, res, next) => {
-    const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    const allowedOrigins = [
+        'http://localhost:3000', 
+        'http://127.0.0.1:3000',
+        process.env.PRODUCTION_URL // Add your production URL here
+    ].filter(Boolean);
+    
     const origin = req.headers.origin;
     
     if (allowedOrigins.includes(origin)) {
@@ -33,6 +38,9 @@ app.use((req, res, next) => {
     next();
 });
 
+// Serve static files from the public directory
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Basic middleware with increased limits
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -46,9 +54,17 @@ const limiter = rateLimit({
     legacyHeaders: false
 });
 
-// Apply rate limiting only in production
+// Apply rate limiting in production
 if (process.env.NODE_ENV === 'production') {
     app.use('/api/', limiter);
+    // Additional security headers for production
+    app.use((req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'DENY');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        next();
+    });
 } else {
     console.log('Rate limiting disabled in development mode');
 }
@@ -214,9 +230,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // Catch-all route for SPA - must be last
 app.get('*', (req, res) => {
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
-        res.status(404).json({ error: 'Not Found' });
-    } else {
+    if (!req.path.startsWith('/api')) {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     }
 });
@@ -271,12 +285,10 @@ process.on('SIGINT', async () => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log('=================================');
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`MongoDB Status: ${mongoose.connection.readyState}`);
-    console.log(`MongoDB Connection State: ${['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState]}`);
-    console.log('=================================');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('MongoDB URI:', process.env.MONGODB_URI ? 'Set' : 'Not set');
 });
 
 // Add error handler for uncaught exceptions

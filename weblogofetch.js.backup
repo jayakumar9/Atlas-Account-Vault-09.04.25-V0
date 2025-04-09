@@ -1,0 +1,92 @@
+class WebLogoFetch extends HTMLElement {
+    constructor() {
+        super();
+    }
+
+    async fetchLogo(domain, uploadedFile = null) {
+        domain = this.cleanDomain(domain);
+        if (!domain) {
+            console.log('Invalid domain provided');
+            return {
+                url: this.createDefaultLogo('??'),
+                type: 'default',
+                label: 'Default Logo'
+            };
+        }
+
+        try {
+            const logos = [];
+            
+            // List of logo providers to try in sequence
+            const providers = [
+                {
+                    name: 'Google Favicon',
+                    url: `https://www.google.com/s2/favicons?sz=64&domain=${domain}`
+                },
+                {
+                    name: 'DuckDuckGo',
+                    url: `https://icons.duckduckgo.com/ip3/${domain}.ico`
+                },
+                {
+                    name: 'Clearbit',
+                    url: `https://logo.clearbit.com/${domain}`
+                },
+                {
+                    name: 'FaviconKit',
+                    url: `https://api.faviconkit.com/${domain}/64`
+                },
+                {
+                    name: 'Direct Favicon',
+                    url: `https://${domain}/favicon.ico`
+                }
+            ];
+
+            // Try each provider through proxy
+            if (this.isValidDomain(domain)) {
+                for (const provider of providers) {
+                    if (logos.length > 0) break; // Stop if we already have a logo
+
+                    try {
+                        // Use proxy server to avoid CORS issues
+                        const proxyUrl = `http://localhost:3000/proxy-image?url=${encodeURIComponent(provider.url)}`;
+                        const img = await this.tryLoadImage(proxyUrl);
+                        if (img.success) {
+                            logos.push({
+                                url: img.dataUrl,
+                                type: 'actual',
+                                label: 'Company Logo',
+                                provider: provider.name
+                            });
+                            console.log(`Logo found from ${provider.name}`);
+                            break; // Stop after first successful logo fetch
+                        }
+                    } catch (error) {
+                        console.log(`${provider.name} logo fetch failed:`, error);
+                    }
+                }
+            }
+
+            // Add default logo option
+            const defaultLogo = {
+                url: this.createDefaultLogo(domain),
+                type: 'default',
+                label: 'Default Logo'
+            };
+            logos.push(defaultLogo);
+
+            // Show logo selection dialog
+            return await this.showLogoSelectionDialog(logos, domain);
+
+        } catch (error) {
+            console.log('Logo fetch failed:', error);
+            return {
+                url: this.createDefaultLogo(domain),
+                type: 'default',
+                label: 'Default Logo'
+            };
+        }
+    }
+
+    // ... rest of the code ...
+    [Rest of the file content remains exactly the same]
+} 
