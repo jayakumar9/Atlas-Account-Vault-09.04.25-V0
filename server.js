@@ -5,6 +5,9 @@ const rateLimit = require('express-rate-limit');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const dotenv = require('dotenv');
+const cors = require('cors');
+const axios = require('axios');
+const fetch = require('node-fetch');
 
 dotenv.config();
 
@@ -12,10 +15,18 @@ const app = express();
 
 // Enable CORS for all routes with credentials
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    const allowedOrigins = ['http://localhost:3000', 'http://127.0.0.1:3000'];
+    const origin = req.headers.origin;
+    
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400'); // 24 hours
+    
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -28,10 +39,19 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100 // limit each IP to 100 requests per windowMs
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 200, // limit each IP to 200 requests per minute
+    message: 'Too many requests, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false
 });
-app.use('/api/', limiter);
+
+// Apply rate limiting only in production
+if (process.env.NODE_ENV === 'production') {
+    app.use('/api/', limiter);
+} else {
+    console.log('Rate limiting disabled in development mode');
+}
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -122,7 +142,7 @@ app.get('/api/status', (req, res) => {
 app.get('/api/db-info', (req, res) => {
     try {
         const dbInfo = {
-            dbName: mongoose.connection.name || 'Not connected',
+            dbName: mongoose.connection.db ? mongoose.connection.db.databaseName : 'Not connected',
             collectionName: 'accounts'  // This is the collection we're using for storing accounts
         };
         res.json(dbInfo);
@@ -138,8 +158,59 @@ app.get('/api/db-info', (req, res) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/accounts', require('./routes/accounts'));
 
+// Proxy endpoint for fetching images
+app.get('/api/proxy-image', async (req, res) => {
+    const url = req.query.url;
+    if (!url) {
+        return res.status(400).send('URL parameter is required');
+    }
+
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000); // 4 second timeout
+
+        const response = await fetch(url, {
+            signal: controller.signal,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
+
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            return res.status(response.status).send(`Failed to fetch image: ${response.statusText}`);
+        }
+
+        const buffer = await response.arrayBuffer();
+        
+        // Set response headers
+        res.set({
+            'Content-Type': response.headers.get('content-type') || 'image/png',
+            'Content-Length': buffer.byteLength,
+            'Cache-Control': 'public, max-age=86400', // Cache for 24 hours
+            'Access-Control-Allow-Origin': '*'
+        });
+
+        return res.send(Buffer.from(buffer));
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            return res.status(504).send('Request timeout');
+        }
+        console.error('Error fetching image:', error);
+        return res.status(500).send('Error fetching image');
+    }
+});
+
 // Static files - after API routes
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+            res.setHeader('Cache-Control', 'public, max-age=31536000');
+        }
+    }
+}));
 
 // Catch-all route for SPA - must be last
 app.get('*', (req, res) => {
@@ -217,4 +288,80 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise);
     console.error('Reason:', reason);
+});
+
+// Serve static files from the current directory
+app.use(express.static('./'));
+
+// Proxy endpoint for fetching logos
+app.get('/fetch-logo', async (req, res) => {
+    const { domain } = req.query;
+    if (!domain) {
+        return res.status(400).json({ error: 'Domain parameter is required' });
+    }
+
+    const providers = [
+        `https://logo.clearbit.com/${domain}?size=256`,
+        `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${domain}&size=128`,
+        `https://icon.horse/icon/${domain}`
+    ];
+
+    for (const provider of providers) {
+        try {
+            const response = await axios.get(provider, {
+                responseType: 'arraybuffer',
+                timeout: 5000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            });
+
+            // Check if we got an image
+            if (response.headers['content-type'].startsWith('image/')) {
+                res.setHeader('Content-Type', response.headers['content-type']);
+                return res.send(response.data);
+            }
+        } catch (error) {
+            console.log(`Failed to fetch from ${provider}:`, error.message);
+            continue;
+        }
+    }
+
+    // If all providers fail, return 404
+    res.status(404).json({ error: 'No logo found' });
+});
+
+// Proxy endpoint for fetching logos
+app.get('/api/fetch-logo', async (req, res) => {
+    try {
+        const { url } = req.query;
+        if (!url) {
+            return res.status(400).send('URL parameter is required');
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            return res.status(response.status).send(response.statusText);
+        }
+
+        const contentType = response.headers.get('content-type');
+        const buffer = await response.buffer();
+
+        // Set appropriate headers
+        res.set({
+            'Content-Type': contentType || 'image/png',
+            'Cache-Control': 'public, max-age=31536000',
+            'Access-Control-Allow-Origin': '*'
+        });
+
+        res.send(buffer);
+    } catch (error) {
+        console.error('Proxy error:', error);
+        res.status(500).send('Error fetching logo');
+    }
+});
+
+// Serve the example.html file
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'example.html'));
 });

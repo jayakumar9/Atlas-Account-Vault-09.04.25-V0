@@ -50,95 +50,114 @@ window.UI = {
     },
 
     createAccountLogo(account) {
+        // Input validation
         if (!account || typeof account !== 'object') {
             console.error('Invalid account object:', account);
             return this.createDefaultLogo();
         }
 
         try {
-            // If website URL exists, try to get its favicon
+            // If website URL exists, try to get its logo
             if (account.website) {
                 let websiteUrl = account.website.toLowerCase();
                 
-                // Add https:// if no protocol is specified
+                // Clean up the website URL
+                websiteUrl = websiteUrl.trim();
                 if (!websiteUrl.startsWith('http://') && !websiteUrl.startsWith('https://')) {
                     websiteUrl = 'https://' + websiteUrl;
                 }
 
+                // Extract hostname and clean it
+                let hostname;
                 try {
                     const url = new URL(websiteUrl);
-                    const hostname = url.hostname.replace(/^www\./, '');
+                    hostname = url.hostname.replace(/^www\./, '');
                     
-                    // Use a default logo initially
-                    const defaultLogo = this.createDefaultLogoFromName(account.name);
-                    
-                    // Create an image element to test logo URLs
-                    const img = new Image();
-                    let currentServiceIndex = 0;
-                    
-                    const services = [
-                        // 1. Clearbit Logo API (high quality, includes brand logos)
-                        `https://logo.clearbit.com/${hostname}`,
-                        // 2. Google S2 Favicon Service (reliable, basic favicons)
-                        `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
-                        // 3. DuckDuckGo Favicon Service (good fallback)
-                        `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
-                        // 4. Direct favicon from website
-                        `${url.origin}/favicon.ico`
-                    ];
-
-                    // Cache successful logo URLs
-                    if (!window.UI.logoCache) {
-                        window.UI.logoCache = new Map();
+                    // Handle special cases like x.com (Twitter)
+                    if (hostname === 'x.com') {
+                        hostname = 'twitter.com';
                     }
-
-                    // Check cache first
-                    if (window.UI.logoCache.has(hostname)) {
-                        return window.UI.logoCache.get(hostname);
-                    }
-
-                    // Try loading the logo from each service
-                    const tryLoadLogo = () => {
-                        if (currentServiceIndex >= services.length) {
-                            return defaultLogo;
-                        }
-
-                        return new Promise((resolve) => {
-                            const logoUrl = services[currentServiceIndex];
-                            img.onload = () => {
-                                // Cache successful result
-                                window.UI.logoCache.set(hostname, logoUrl);
-                                resolve(logoUrl);
-                            };
-                            img.onerror = () => {
-                                currentServiceIndex++;
-                                if (currentServiceIndex < services.length) {
-                                    img.src = services[currentServiceIndex];
-                                } else {
-                                    // Cache default logo to prevent future attempts
-                                    window.UI.logoCache.set(hostname, defaultLogo);
-                                    resolve(defaultLogo);
-                                }
-                            };
-                            img.src = logoUrl;
-                        });
-                    };
-
-                    // Return default logo immediately while trying to load the actual logo
-                    tryLoadLogo().then(logoUrl => {
-                        // Update all instances of this website's logo
-                        document.querySelectorAll('.account-logo').forEach(logoImg => {
-                            if (logoImg.dataset.website === hostname) {
-                                logoImg.src = logoUrl;
-                            }
-                        });
-                    });
-
-                    return defaultLogo;
-                } catch (urlError) {
-                    console.error('Invalid URL:', urlError);
-                    return this.createDefaultLogoFromName(account.name);
+                } catch (e) {
+                    console.error('Error parsing URL:', e);
+                    hostname = websiteUrl.replace(/^www\./, '').split('/')[0];
                 }
+                
+                // Use a default logo initially
+                const defaultLogo = this.createDefaultLogoFromName(account.name);
+
+                // Cache successful logo URLs
+                if (!window.UI.logoCache) {
+                    window.UI.logoCache = new Map();
+                }
+
+                // Check cache first
+                if (window.UI.logoCache.has(hostname)) {
+                    return window.UI.logoCache.get(hostname);
+                }
+
+                // List of services to try
+                const services = [
+                    // 1. Clearbit Logo API (high quality)
+                    `https://logo.clearbit.com/${hostname}`,
+                    // 2. Google S2 Favicon Service (reliable)
+                    `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`,
+                    // 3. DuckDuckGo Favicon Service (good fallback)
+                    `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+                    // 4. Direct favicon from website
+                    `${websiteUrl}/favicon.ico`
+                ];
+
+                // Try loading the logo from each service
+                const tryLoadLogo = async () => {
+                    for (const serviceUrl of services) {
+                        try {
+                            const response = await fetch(serviceUrl);
+                            
+                            if (!response.ok) {
+                                console.log(`Failed to fetch logo from ${serviceUrl}: ${response.status}`);
+                                continue;
+                            }
+
+                            const blob = await response.blob();
+                            if (blob.size < 50) { // Reduced minimum size threshold
+                                console.log(`Logo too small from ${serviceUrl}: ${blob.size} bytes`);
+                                continue;
+                            }
+
+                            // Convert blob to data URL
+                            const dataUrl = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onload = () => resolve(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
+
+                            // Cache successful result
+                            window.UI.logoCache.set(hostname, dataUrl);
+                            return dataUrl;
+                        } catch (error) {
+                            console.log(`Error fetching logo from ${serviceUrl}:`, error);
+                            continue;
+                        }
+                    }
+                    
+                    // If all services fail, use and cache default logo
+                    window.UI.logoCache.set(hostname, defaultLogo);
+                    return defaultLogo;
+                };
+
+                // Return default logo immediately while trying to load the actual logo
+                tryLoadLogo().then(logoUrl => {
+                    // Update all instances of this website's logo
+                    document.querySelectorAll('.account-logo').forEach(logoImg => {
+                        if (logoImg.dataset.website === hostname) {
+                            logoImg.src = logoUrl;
+                        }
+                    });
+                }).catch(error => {
+                    console.error('Error in logo loading process:', error);
+                });
+
+                return defaultLogo;
             }
 
             return this.createDefaultLogoFromName(account.name);
@@ -252,17 +271,42 @@ window.UI = {
 async function updateDatabaseInfo() {
     try {
         const response = await fetch('/api/db-info');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         
-        document.getElementById('db-name').textContent = data.dbName;
-        document.getElementById('collection-name').textContent = data.collectionName;
+        const dbNameElement = document.getElementById('db-name');
+        const collectionNameElement = document.getElementById('collection-name');
+        
+        if (dbNameElement && data.dbName) {
+            dbNameElement.textContent = data.dbName;
+            dbNameElement.style.color = data.dbName === 'Not connected' ? '#dc3545' : '#4CAF50';
+        }
+        
+        if (collectionNameElement && data.collectionName) {
+            collectionNameElement.textContent = data.collectionName;
+            collectionNameElement.style.color = data.collectionName === 'Error' ? '#dc3545' : '#4CAF50';
+        }
     } catch (error) {
         console.error('Error fetching database info:', error);
+        const dbNameElement = document.getElementById('db-name');
+        const collectionNameElement = document.getElementById('collection-name');
+        
+        if (dbNameElement) {
+            dbNameElement.textContent = 'Error';
+            dbNameElement.style.color = '#dc3545';
+        }
+        if (collectionNameElement) {
+            collectionNameElement.textContent = 'Error';
+            collectionNameElement.style.color = '#dc3545';
+        }
     }
 }
 
-// Call this when initializing the UI
+// Call this when initializing the UI and periodically
 document.addEventListener('DOMContentLoaded', () => {
-    // ... existing initialization code ...
     updateDatabaseInfo();
+    // Update database info every 30 seconds
+    setInterval(updateDatabaseInfo, 30000);
 }); 

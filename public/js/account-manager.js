@@ -106,7 +106,7 @@ window.AccountManager = {
                                     alt="${account.name || 'Account'}"
                                     class="account-logo"
                                     data-website="${hostname}"
-                                    onerror="this.src='${UI.createDefaultLogoFromName(account.name)}';"
+                                    onerror="this.src='${window.UI.createDefaultLogoFromName(account.name)}';"
                                 />
                             </div>
                             <div class="account-info">
@@ -174,11 +174,28 @@ window.AccountManager = {
             if (!email) throw new Error('Email is required');
             if (!password) throw new Error('Password is required');
 
-            if (fileInput.files[0] && fileInput.files[0].size > 50 * 1024 * 1024) {
-                throw new Error('File size must be less than 50MB');
+            // Fetch logo if website is provided
+            let logoUrl = null;
+            if (website) {
+                const logoFetcher = document.getElementById('logo-fetcher');
+                if (logoFetcher) {
+                    const logoResult = await logoFetcher.fetchLogo(website, fileInput.files[0]);
+                    if (logoResult) {
+                        logoUrl = logoResult.url;
+                    }
+                }
             }
 
-            const accountData = { website, name, username, email, password, note };
+            const accountData = { 
+                website, 
+                name, 
+                username, 
+                email, 
+                password, 
+                note,
+                logo: logoUrl // Add logo URL to account data
+            };
+
             const token = Auth.getToken();
             if (!token) throw new Error('Not authenticated');
 

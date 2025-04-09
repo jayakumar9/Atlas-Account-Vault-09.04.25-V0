@@ -9,7 +9,13 @@ A secure web application for managing and storing account credentials with featu
 - 🔑 Password visibility toggle in all forms
 - 🎲 Strong password generator
 - 📎 File attachment support
-- 🖼️ Automatic favicon fetching for websites
+- 🖼️ Enhanced Logo Fetching System:
+  - Smart domain mapping (e.g., x.com → twitter.com)
+  - Multiple logo provider fallbacks
+  - Optimized caching system
+  - Automatic size normalization
+  - 3-second delay for stable input
+  - Proxy support for CORS handling
 - 🎨 Beautiful and responsive UI
 - 📱 Mobile-friendly design
 - 🔍 Search and filter capabilities
@@ -99,6 +105,45 @@ A secure web application for managing and storing account credentials with featu
 - Authentication: JWT (JSON Web Tokens)
 - Icons: Font Awesome for UI elements
 
+## Latest Updates
+
+### Enhanced Logo Fetching System
+- **Smart Domain Handling**:
+  - Automatic mapping of alternative domains (e.g., x.com → twitter.com)
+  - Special handling for popular services (Google, GitHub, etc.)
+  - Robust domain validation and cleaning
+
+- **Multi-Provider Logo Fetching**:
+  - Primary: Clearbit Logo API
+  - Secondary: Google Favicon Service
+  - Tertiary: DuckDuckGo Icon Service
+  - Fallback: Direct favicon.ico fetch
+  - Default: Auto-generated initials logo
+
+- **Improved Error Handling**:
+  - Timeout management (4s server, 5s client)
+  - Graceful fallbacks for failed fetches
+  - Detailed error logging
+  - CORS issue resolution via proxy
+
+- **Performance Optimizations**:
+  - 3-second input delay for stability
+  - Image size validation (minimum 8x8 pixels)
+  - Automatic image normalization to 48x48
+  - Response caching (24-hour cache)
+  - Efficient proxy implementation
+
+- **User Experience**:
+  - Debounced input handling
+  - Clear loading states
+  - Smooth transitions
+  - Fallback to initials when needed
+
+### System Requirements
+- Node.js 14+
+- MongoDB 4.4+
+- Modern web browser with JavaScript enabled
+
 ## Installation
 
 1. Clone the repository:
@@ -149,6 +194,12 @@ npm start
 
 4. Monitor system status through the status indicator
 
+5. **Logo System**:
+   - Enter website URL in the input field
+   - System waits 3 seconds after typing completion
+   - Logo is automatically fetched and displayed
+   - Fallback to initials if no logo is found
+
 ## Security Features
 
 - Password encryption
@@ -158,6 +209,8 @@ npm start
 - Secure file storage with GridFS
 - Session management
 - Input validation and sanitization
+- Rate limiting
+- CORS protection
 
 ## Development
 
@@ -178,16 +231,6 @@ npm run dev
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Latest Updates
-
-- Added password visibility toggle in all forms
-- Implemented strong password generator
-- Enhanced login and registration forms
-- Improved error handling
-- Enhanced UI/UX with responsive design
-- Added file attachment capabilities
-- Implemented real-time database status monitoring
 
 ## Contact
 
