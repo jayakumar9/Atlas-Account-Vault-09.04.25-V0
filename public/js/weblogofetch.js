@@ -242,9 +242,9 @@ class WebLogoFetch extends HTMLElement {
     }
 
     async tryFetchLogo(provider) {
-        console.log(`Attempting to fetch logo from: ${provider}`);
-        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(provider)}`;
-        
+                console.log(`Attempting to fetch logo from: ${provider}`);
+                const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(provider)}`;
+                
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
@@ -259,7 +259,7 @@ class WebLogoFetch extends HTMLElement {
 
             clearTimeout(timeoutId);
 
-            if (!response.ok) {
+                if (!response.ok) {
                 const errorText = await response.text();
                 if (response.status === 504) {
                     console.warn(`Timeout fetching from ${provider}`);
@@ -267,17 +267,17 @@ class WebLogoFetch extends HTMLElement {
                 }
                 console.warn(`Failed to fetch from ${provider}: ${response.status} - ${errorText}`);
                 return null;
-            }
+                }
 
-            const blob = await response.blob();
+                const blob = await response.blob();
             if (!blob || blob.size < 50) { // Reduced minimum size threshold
                 console.warn(`Image too small or invalid from ${provider}: ${blob?.size || 0} bytes`);
                 return null;
             }
 
-            const objectUrl = URL.createObjectURL(blob);
+                const objectUrl = URL.createObjectURL(blob);
 
-            try {
+                try {
                 // Validate image dimensions with timeout
                 const dimensions = await Promise.race([
                     new Promise((resolve, reject) => {
@@ -299,13 +299,13 @@ class WebLogoFetch extends HTMLElement {
 
                 if (!dimensions) {
                     console.warn(`Invalid image dimensions from ${provider}`);
-                    URL.revokeObjectURL(objectUrl);
+                        URL.revokeObjectURL(objectUrl);
                     return null;
-                }
+                    }
 
                 // Normalize to 48x48 while maintaining aspect ratio
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
                 canvas.width = canvas.height = 48;
 
                 const img = await Promise.race([
@@ -327,27 +327,27 @@ class WebLogoFetch extends HTMLElement {
                     return null;
                 }
 
-                // Clear canvas
+                    // Clear canvas
                 ctx.clearRect(0, 0, 48, 48);
 
-                // Calculate dimensions maintaining aspect ratio
+                    // Calculate dimensions maintaining aspect ratio
                 const scale = Math.min(48 / img.width, 48 / img.height);
-                const width = img.width * scale;
-                const height = img.height * scale;
+                    const width = img.width * scale;
+                    const height = img.height * scale;
                 const x = (48 - width) / 2;
                 const y = (48 - height) / 2;
 
-                // Draw image centered
-                ctx.drawImage(img, x, y, width, height);
+                    // Draw image centered
+                    ctx.drawImage(img, x, y, width, height);
 
-                URL.revokeObjectURL(objectUrl);
-                return canvas.toDataURL('image/png');
-            } catch (error) {
-                console.warn(`Error processing image from ${provider}:`, error);
-                URL.revokeObjectURL(objectUrl);
+                    URL.revokeObjectURL(objectUrl);
+                    return canvas.toDataURL('image/png');
+                } catch (error) {
+                    console.warn(`Error processing image from ${provider}:`, error);
+                    URL.revokeObjectURL(objectUrl);
                 return null;
-            }
-        } catch (error) {
+                }
+            } catch (error) {
             if (error.name === 'AbortError') {
                 console.warn(`Request timeout for ${provider}`);
             } else {
