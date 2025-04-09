@@ -4,6 +4,10 @@ class WebLogoFetch extends HTMLElement {
         this.debounceTimer = null;
         this.lastInputValue = '';
         this.isTyping = false;
+        this.logoCache = new Map();
+        this.failedAttempts = new Map();
+        this.maxRetries = 2;
+        this.retryDelay = 1000;
         this.innerHTML = `
             <div class="web-logo-fetch-container">
                 <img id="selectedLogo" 
@@ -242,12 +246,24 @@ class WebLogoFetch extends HTMLElement {
     }
 
     async tryFetchLogo(provider) {
-                console.log(`Attempting to fetch logo from: ${provider}`);
-                const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(provider)}`;
+        // Check cache first
+        if (this.logoCache.has(provider)) {
+            return this.logoCache.get(provider);
+        }
+
+        // Check if we've exceeded retry attempts
+        const attempts = this.failedAttempts.get(provider) || 0;
+        if (attempts >= this.maxRetries) {
+            console.warn(`Max retries exceeded for ${provider}`);
+            return null;
+        }
+
+        console.log(`Attempting to fetch logo from: ${provider}`);
+        const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(provider)}`;
                 
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
 
             const response = await fetch(proxyUrl, {
                 signal: controller.signal,
@@ -259,26 +275,31 @@ class WebLogoFetch extends HTMLElement {
 
             clearTimeout(timeoutId);
 
-                if (!response.ok) {
+            if (!response.ok) {
                 const errorText = await response.text();
                 if (response.status === 504) {
                     console.warn(`Timeout fetching from ${provider}`);
+                    this.failedAttempts.set(provider, attempts + 1);
+                    // Retry after delay
+                    if (attempts < this.maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                        return this.tryFetchLogo(provider);
+                    }
                     return null;
                 }
                 console.warn(`Failed to fetch from ${provider}: ${response.status} - ${errorText}`);
                 return null;
-                }
+            }
 
-                const blob = await response.blob();
-            if (!blob || blob.size < 50) { // Reduced minimum size threshold
+            const blob = await response.blob();
+            if (!blob || blob.size < 50) {
                 console.warn(`Image too small or invalid from ${provider}: ${blob?.size || 0} bytes`);
                 return null;
             }
 
-                const objectUrl = URL.createObjectURL(blob);
+            const objectUrl = URL.createObjectURL(blob);
 
-                try {
-                // Validate image dimensions with timeout
+            try {
                 const dimensions = await Promise.race([
                     new Promise((resolve, reject) => {
                         const img = new Image();
@@ -299,13 +320,12 @@ class WebLogoFetch extends HTMLElement {
 
                 if (!dimensions) {
                     console.warn(`Invalid image dimensions from ${provider}`);
-                        URL.revokeObjectURL(objectUrl);
+                    URL.revokeObjectURL(objectUrl);
                     return null;
-                    }
+                }
 
-                // Normalize to 48x48 while maintaining aspect ratio
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
                 canvas.width = canvas.height = 48;
 
                 const img = await Promise.race([
@@ -327,29 +347,38 @@ class WebLogoFetch extends HTMLElement {
                     return null;
                 }
 
-                    // Clear canvas
                 ctx.clearRect(0, 0, 48, 48);
 
-                    // Calculate dimensions maintaining aspect ratio
                 const scale = Math.min(48 / img.width, 48 / img.height);
-                    const width = img.width * scale;
-                    const height = img.height * scale;
+                const width = img.width * scale;
+                const height = img.height * scale;
                 const x = (48 - width) / 2;
                 const y = (48 - height) / 2;
 
-                    // Draw image centered
-                    ctx.drawImage(img, x, y, width, height);
+                ctx.drawImage(img, x, y, width, height);
 
-                    URL.revokeObjectURL(objectUrl);
-                    return canvas.toDataURL('image/png');
-                } catch (error) {
-                    console.warn(`Error processing image from ${provider}:`, error);
-                    URL.revokeObjectURL(objectUrl);
-                return null;
-                }
+                URL.revokeObjectURL(objectUrl);
+                const result = canvas.toDataURL('image/png');
+                
+                // Cache successful result
+                this.logoCache.set(provider, result);
+                this.failedAttempts.delete(provider);
+                
+                return result;
             } catch (error) {
+                console.warn(`Error processing image from ${provider}:`, error);
+                URL.revokeObjectURL(objectUrl);
+                return null;
+            }
+        } catch (error) {
             if (error.name === 'AbortError') {
                 console.warn(`Request timeout for ${provider}`);
+                this.failedAttempts.set(provider, attempts + 1);
+                // Retry after delay
+                if (attempts < this.maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+                    return this.tryFetchLogo(provider);
+                }
             } else {
                 console.warn(`Network error fetching from ${provider}:`, error);
             }
